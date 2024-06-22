@@ -12,6 +12,12 @@
 #define new DEBUG_NEW
 #endif
 
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "dxguid.lib")
+// 最下面两个lib在windows上的真实名字叫做d3dcompiler和WinMM
+#pragma comment(lib, "D3DCompiler.lib")
+#pragma comment(lib, "winmm.lib")
 
 // CChapterOneInitialDlg 对话框
 
@@ -21,6 +27,12 @@ CChapterOneInitialDlg::CChapterOneInitialDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_CHAPTER_ONE_INITIAL_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+}
+
+CChapterOneInitialDlg::~CChapterOneInitialDlg()
+{
+	if (m_pD11DeviceContext)
+		m_pD11DeviceContext->ClearState();
 }
 
 void CChapterOneInitialDlg::DoDataExchange(CDataExchange* pDX)
@@ -46,6 +58,7 @@ BOOL CChapterOneInitialDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	InitD3DReource();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -84,5 +97,65 @@ void CChapterOneInitialDlg::OnPaint()
 HCURSOR CChapterOneInitialDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
+}
+
+bool CChapterOneInitialDlg::InitD3DReource()
+{
+	HRESULT hr = S_OK;
+
+	// 创建D3D设备和D3D设备上下文
+	UINT createDeviceFlags = 0;
+#if defined(DEBUG) || defined(_DEBUG)
+	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+	// 驱动类型数组
+	D3D_DRIVER_TYPE driverTypes[] = 
+	{
+		D3D_DRIVER_TYPE_HARDWARE,	// 硬件驱动
+		D3D_DRIVER_TYPE_WARP,		// WARP驱动
+		D3D_DRIVER_TYPE_REFERENCE,	// 软件驱动
+	};
+	UINT nNumDriverType = ARRAYSIZE(driverTypes);
+	// 特性等级数组
+	D3D_FEATURE_LEVEL featureLevels[] = 
+	{
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_0,
+	};
+	UINT nNumFeartureLevel = ARRAYSIZE(featureLevels);
+	D3D_FEATURE_LEVEL featureLevel;
+	D3D_DRIVER_TYPE driverType;
+
+	for (UINT nDriverIndex = 0; nDriverIndex < nNumDriverType; ++nDriverIndex)
+	{
+		driverType = driverTypes[nDriverIndex];
+		hr = D3D11CreateDevice(nullptr, driverType, nullptr, createDeviceFlags, featureLevels, nNumFeartureLevel,
+			D3D11_SDK_VERSION, m_pD11Device.GetAddressOf(), &featureLevel, m_pD11DeviceContext.GetAddressOf());
+		if (E_INVALIDARG == hr)
+		{
+			// 返回E_INVALIDARG代表API不承认系统支持d3d11.1特性等级，需要尝试更低的特性等级
+			hr = D3D11CreateDevice(nullptr, driverType, nullptr, createDeviceFlags, &featureLevels[1], nNumFeartureLevel - 1,
+				D3D11_SDK_VERSION, m_pD11Device.GetAddressOf(), &featureLevel, m_pD11DeviceContext.GetAddressOf());
+		}
+		if (SUCCEEDED(hr))
+			break;
+	}
+
+	// 检测D3D设备是否创建成功
+	if (FAILED(hr))
+	{
+		MessageBox(_T("D3D11CreateDevice failed!!!"));
+		return false;
+	}
+	// 检查创建的设备的特性等级
+	if (D3D_FEATURE_LEVEL_11_1 != featureLevel && D3D_FEATURE_LEVEL_11_0 != featureLevel)
+	{
+		MessageBox(_T("Direct3D Feature Level 11 unsupported."));
+		return false;
+	}
+
+
+
+	return true;
 }
 

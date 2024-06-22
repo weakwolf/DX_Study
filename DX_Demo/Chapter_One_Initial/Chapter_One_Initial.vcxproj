@@ -112,7 +112,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -189,6 +189,8 @@
   <ItemGroup>
     <ClInclude Include="Chapter_One_Initial.h" />
     <ClInclude Include="Chapter_One_InitialDlg.h" />
+    <ClInclude Include="d3dUtil.h" />
+    <ClInclude Include="DXTrace.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
@@ -197,6 +199,8 @@
   <ItemGroup>
     <ClCompile Include="Chapter_One_Initial.cpp" />
     <ClCompile Include="Chapter_One_InitialDlg.cpp" />
+    <ClCompile Include="d3dUtil.cpp" />
+    <ClCompile Include="DXTrace.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
