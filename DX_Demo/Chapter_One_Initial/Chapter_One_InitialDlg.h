@@ -60,4 +60,6 @@ private:
 
 	int m_nClientWidth;		// 视口宽度
 	int m_nClientHeight;	// 视口高度
+
+	UINT m_4xMsaaQuality;	// MSAA支持的质量等级
 };

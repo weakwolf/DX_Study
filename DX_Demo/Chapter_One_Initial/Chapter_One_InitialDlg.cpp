@@ -154,7 +154,10 @@ bool CChapterOneInitialDlg::InitD3DReource()
 		return false;
 	}
 
-
+	// 检测当前特性等级支持的4倍多重采样的质量等级
+	// @see https://learn.microsoft.com/zh-cn/windows/win32/api/d3d11/nf-d3d11-id3d11device-checkmultisamplequalitylevels
+	m_pD11Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m_4xMsaaQuality);
+	assert(m_4xMsaaQuality > 0);
 
 	return true;
 }
