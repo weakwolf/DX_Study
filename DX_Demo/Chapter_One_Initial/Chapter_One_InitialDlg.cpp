@@ -27,6 +27,9 @@ CChapterOneInitialDlg::CChapterOneInitialDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_CHAPTER_ONE_INITIAL_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+
+	m_nClientWidth = 600;
+	m_nClientHeight = 600;
 }
 
 CChapterOneInitialDlg::~CChapterOneInitialDlg()
@@ -56,6 +59,10 @@ BOOL CChapterOneInitialDlg::OnInitDialog()
 	//  执行此操作
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
+
+	CRect rect;
+	CWnd::FromHandle(this->GetSafeHwnd())->GetWindowRect(&rect);
+	::MoveWindow(this->GetSafeHwnd(), rect.left, rect.top, m_nClientWidth, m_nClientHeight, TRUE);
 
 	// TODO: 在此添加额外的初始化代码
 	InitD3DReource();
@@ -158,6 +165,82 @@ bool CChapterOneInitialDlg::InitD3DReource()
 	// @see https://learn.microsoft.com/zh-cn/windows/win32/api/d3d11/nf-d3d11-id3d11device-checkmultisamplequalitylevels
 	m_pD11Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m_4xMsaaQuality);
 	assert(m_4xMsaaQuality > 0);
+	m_bEnableMsaa = (m_4xMsaaQuality > 0);
+
+	// 创建DXGI交换链
+	ComPtr<IDXGIDevice> pDxgiDevice = nullptr;
+	ComPtr<IDXGIAdapter> pDxgiAdapter = nullptr;
+	ComPtr<IDXGIFactory1> pDxgiFactory1 = nullptr;
+	ComPtr<IDXGIFactory2> pDxgiFactory2 = nullptr;
+	// 首先创建IDXGIFactory
+	HR(m_pD11Device.As(&pDxgiDevice));
+	HR(pDxgiDevice->GetAdapter(&pDxgiAdapter));
+	HR(pDxgiAdapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(pDxgiFactory1.GetAddressOf())));
+	// 查看该对象是否包含IDXGIFactory2的接口
+	if (pDxgiFactory1.As(&pDxgiFactory2))
+	{
+		m_pD11Device.As(&m_pD11Device1);
+		m_pD11DeviceContext.As(&m_pD11DeviceContext1);
+		// 填充各种结构体以创建交换链
+		DXGI_SWAP_CHAIN_DESC1 sd;
+		ZeroMemory(&sd, sizeof(sd));
+		sd.Width = m_nClientWidth;
+		sd.Height = m_nClientHeight;
+		sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		// 是否开启四倍多重采样
+		if (m_bEnableMsaa)
+		{
+			sd.SampleDesc.Count = 4;
+			sd.SampleDesc.Quality = m_4xMsaaQuality - 1;
+		}
+		else
+		{
+			sd.SampleDesc.Count = 1;
+			sd.SampleDesc.Quality = 0;
+		}
+		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		sd.BufferCount = 1;
+		sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+		sd.Flags = 0;
+		DXGI_SWAP_CHAIN_FULLSCREEN_DESC fd;
+		fd.RefreshRate.Numerator = 60;
+		fd.RefreshRate.Denominator = 1;
+		fd.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+		fd.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+		fd.Windowed = TRUE;
+		// 为当前窗口创建交换链
+		HR(pDxgiFactory2->CreateSwapChainForHwnd(m_pD11Device1.Get(), this->GetSafeHwnd(), &sd, &fd, nullptr, &m_pSwapChain1));
+		HR(m_pSwapChain1.As(&m_pSwapChian));
+	}
+	else
+	{
+		DXGI_SWAP_CHAIN_DESC sd;
+		ZeroMemory(&sd, sizeof(sd));
+		sd.BufferDesc.Width = m_nClientWidth;
+		sd.BufferDesc.Height = m_nClientHeight;
+		sd.BufferDesc.RefreshRate.Numerator = 60;
+		sd.BufferDesc.RefreshRate.Denominator = 1;
+		sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+		sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+		if (m_bEnableMsaa)
+		{
+			sd.SampleDesc.Count = 4;
+			sd.SampleDesc.Quality = m_4xMsaaQuality - 1;
+		}
+		else
+		{
+			sd.SampleDesc.Count = 1;
+			sd.SampleDesc.Quality = 0;
+		}
+		sd.BufferCount = 1;
+		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		sd.OutputWindow = this->GetSafeHwnd();
+		sd.Windowed = TRUE;
+		sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+		sd.Flags = 0;
+		HR(pDxgiFactory1->CreateSwapChain(m_pD11Device.Get(), &sd, m_pSwapChian.GetAddressOf()));
+	}
 
 	return true;
 }

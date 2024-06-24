@@ -42,7 +42,7 @@ private:
 
 // D3D相关成员
 private:
-	// D3D11
+	// D3D11(以后我们使用D3D11的API来写代码)
 	ComPtr<ID3D11Device>		m_pD11Device;			// D3D11设备
 	ComPtr<ID3D11DeviceContext> m_pD11DeviceContext;	// D3D11设备上下文
 	ComPtr<IDXGISwapChain>		m_pSwapChian;			// D3D11交换链
@@ -61,5 +61,6 @@ private:
 	int m_nClientWidth;		// 视口宽度
 	int m_nClientHeight;	// 视口高度
 
-	UINT m_4xMsaaQuality;	// MSAA支持的质量等级
+	UINT m_4xMsaaQuality;		// MSAA支持的质量等级
+	bool m_bEnableMsaa = false;
 };
