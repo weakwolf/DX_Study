@@ -39,6 +39,11 @@ protected:
 
 private:
 	bool InitD3DReource();
+	bool CreateRenderTargetViewAndDepthStencilView();
+	void DrawScene();	// 绘制每一帧
+
+private:
+	void InitTimer();
 
 // D3D相关成员
 private:
@@ -53,14 +58,21 @@ private:
 	ComPtr<IDXGISwapChain1>			m_pSwapChain1;			// D3D11.1交换链
 
 	// 常用资源
-	ComPtr<ID3D11Texture2D>			m_pDepthStenciBuffer;		// 深度模板缓冲区
-	ComPtr<ID3D11RenderTargetView>	m_pRenderTargerView;		// 渲染目标视图
+	ComPtr<ID3D11Texture2D>			m_pDepthStencilBuffer;		// 深度模板缓冲区
+	ComPtr<ID3D11RenderTargetView>	m_pRenderTargetView;		// 渲染目标视图
 	ComPtr<ID3D11DepthStencilView>	m_pDepthStencilView;		// 深度模板视图
 	D3D11_VIEWPORT					m_screenViewPort;			// 视口
 
-	int m_nClientWidth;		// 视口宽度
-	int m_nClientHeight;	// 视口高度
+	UINT m_nClientWidth;	// 视口宽度
+	UINT m_nClientHeight;	// 视口高度
 
 	UINT m_4xMsaaQuality;		// MSAA支持的质量等级
 	bool m_bEnableMsaa = false;
+
+private:
+	UINT m_nTimer;
+
+public:
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 };

@@ -16,6 +16,9 @@
     <Filter Include="utils">
       <UniqueIdentifier>{87056a04-326e-4e1c-bc4f-40c0dbf3e6ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="basic">
+      <UniqueIdentifier>{17a41204-d457-4879-9dd7-d212277de217}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Chapter_One_Initial.h">
@@ -24,23 +27,26 @@
     <ClInclude Include="Chapter_One_InitialDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="framework.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="DXTrace.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="d3dUtil.h">
       <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalDefine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>basic</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>basic</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>basic</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>basic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -50,14 +56,14 @@
     <ClCompile Include="Chapter_One_InitialDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="DXTrace.cpp">
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="d3dUtil.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>basic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
