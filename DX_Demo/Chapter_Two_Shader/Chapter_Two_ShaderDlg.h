@@ -1,29 +1,26 @@
 ﻿
-// Chapter_One_InitialDlg.h: 头文件
+// Chapter_Two_ShaderDlg.h: 头文件
 //
 
 #pragma once
 
-#include <d3d11_1.h>
-#include <wrl/client.h>
-
 template <typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-// CChapterOneInitialDlg 对话框
-class CChapterOneInitialDlg : public CDialogEx
+// CChapterTwoShaderDlg 对话框
+class CChapterTwoShaderDlg : public CDialogEx
 {
 // 构造
 public:
-	CChapterOneInitialDlg(CWnd* pParent = nullptr);	// 标准构造函数
-	~CChapterOneInitialDlg();
+	CChapterTwoShaderDlg(CWnd* pParent = nullptr);	// 标准构造函数
+	~CChapterTwoShaderDlg();
 
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_CHAPTER_ONE_INITIAL_DIALOG };
+	enum { IDD = IDD_CHAPTER_TWO_SHADER_DIALOG };
 #endif
 
-protected:
+	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
 
@@ -45,7 +42,7 @@ private:
 private:
 	void InitTimer();
 
-// D3D相关成员
+	// D3D相关成员
 private:
 	// D3D11(以后我们使用D3D11的API来写代码)
 	ComPtr<ID3D11Device>		m_pD11Device;			// D3D11设备
@@ -68,7 +65,6 @@ private:
 
 	UINT m_4xMsaaQuality;		// MSAA支持的质量等级
 	bool m_bEnableMsaa = false;
-
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg void OnSize(UINT nType, int cx, int cy);

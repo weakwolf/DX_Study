@@ -13,25 +13,16 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="utils">
-      <UniqueIdentifier>{87056a04-326e-4e1c-bc4f-40c0dbf3e6ce}</UniqueIdentifier>
-    </Filter>
     <Filter Include="basic">
-      <UniqueIdentifier>{17a41204-d457-4879-9dd7-d212277de217}</UniqueIdentifier>
+      <UniqueIdentifier>{f45b0043-3156-4cf5-b973-b6ae2fc6cc64}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Chapter_One_Initial.h">
+    <ClInclude Include="Chapter_Two_Shader.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Chapter_One_InitialDlg.h">
+    <ClInclude Include="Chapter_Two_ShaderDlg.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DXTrace.h">
-      <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="d3dUtil.h">
-      <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="framework.h">
       <Filter>basic</Filter>
@@ -48,36 +39,42 @@
     <ClInclude Include="GlobalDefine.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="d3dUtil.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DXTrace.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Chapter_One_Initial.cpp">
+    <ClCompile Include="Chapter_Two_Shader.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Chapter_One_InitialDlg.cpp">
+    <ClCompile Include="Chapter_Two_ShaderDlg.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="DXTrace.cpp">
-      <Filter>utils</Filter>
-    </ClCompile>
-    <ClCompile Include="d3dUtil.cpp">
-      <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>basic</Filter>
     </ClCompile>
+    <ClCompile Include="d3dUtil.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DXTrace.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="ChapterOneInitial.rc">
+    <ResourceCompile Include="ChapterTwoShader.rc">
       <Filter>资源文件</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\ChapterOneInitial.rc2">
+    <None Include="res\ChapterTwoShader.rc2">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\Chapter_One_Initial.ico">
+    <Image Include="res\Chapter_Two_Shader.ico">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>
