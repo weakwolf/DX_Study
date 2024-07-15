@@ -13,4 +13,6 @@
 #include "DXTrace.h"
 #include "d3dUtil.h"
 
+#include "GlobalDefine.h"
+
 #endif //PCH_H

@@ -30,6 +30,8 @@ CChapterOneInitialDlg::CChapterOneInitialDlg(CWnd* pParent /*=nullptr*/)
 
 	m_nClientWidth = 600;
 	m_nClientHeight = 600;
+
+	ZeroMemory(&m_screenViewPort, sizeof(D3D11_VIEWPORT));
 }
 
 CChapterOneInitialDlg::~CChapterOneInitialDlg()
@@ -46,6 +48,8 @@ void CChapterOneInitialDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CChapterOneInitialDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_WM_TIMER()
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
@@ -66,6 +70,7 @@ BOOL CChapterOneInitialDlg::OnInitDialog()
 
 	// TODO: 在此添加额外的初始化代码
 	InitD3DReource();
+	InitTimer();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -164,10 +169,11 @@ bool CChapterOneInitialDlg::InitD3DReource()
 	// 检测当前特性等级支持的4倍多重采样的质量等级
 	// @see https://learn.microsoft.com/zh-cn/windows/win32/api/d3d11/nf-d3d11-id3d11device-checkmultisamplequalitylevels
 	m_pD11Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m_4xMsaaQuality);
-	assert(m_4xMsaaQuality > 0);
+	ASSERT(m_4xMsaaQuality > 0);
 	m_bEnableMsaa = (m_4xMsaaQuality > 0);
 
 	// 创建DXGI交换链
+	// 注：实际上有两种交换链翻转模型，这里采用的是教程中的方式，也就是第一种
 	ComPtr<IDXGIDevice> pDxgiDevice = nullptr;
 	ComPtr<IDXGIAdapter> pDxgiAdapter = nullptr;
 	ComPtr<IDXGIFactory1> pDxgiFactory1 = nullptr;
@@ -241,7 +247,129 @@ bool CChapterOneInitialDlg::InitD3DReource()
 		sd.Flags = 0;
 		HR(pDxgiFactory1->CreateSwapChain(m_pD11Device.Get(), &sd, m_pSwapChian.GetAddressOf()));
 	}
+	// 禁用Alt+Enter进入全屏
+	pDxgiFactory1->MakeWindowAssociation(this->GetSafeHwnd(), DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_WINDOW_CHANGES);
+
+	// 设置调试对象名
+	D3D11SetDebugObjectName(m_pD11DeviceContext.Get(), "ImmediateContext");
+	DXGISetDebugObjectName(m_pSwapChian.Get(), "SwapChain");
+
+	// 创建渲染目标视图，深度/模板缓冲区
+	CreateRenderTargetViewAndDepthStencilView();
 
 	return true;
 }
 
+
+
+bool CChapterOneInitialDlg::CreateRenderTargetViewAndDepthStencilView()
+{
+	// 释放渲染管线输出用到的相关资源
+	ASSERT(m_pD11DeviceContext);
+	ASSERT(m_pD11Device);
+	ASSERT(m_pSwapChian);
+	if (m_pD11Device1 != nullptr)
+	{
+		ASSERT(m_pD11DeviceContext1);
+		ASSERT(m_pD11Device1);
+		ASSERT(m_pSwapChain1);
+	}
+	m_pRenderTargetView.Reset();
+	m_pDepthStencilView.Reset();
+	m_pDepthStencilBuffer.Reset();
+
+	// 重设交换链并且重新创建渲染目标视图
+	// 注：渲染目标视图和深度/模板视图，视口不同，后两者可以重新设置，而前者需要重置缓冲区大小
+	ComPtr<ID3D11Texture2D> pBackBuffer;
+	HR(m_pSwapChian->ResizeBuffers(1, m_nClientWidth, m_nClientHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0));
+	HR(m_pSwapChian->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(pBackBuffer.GetAddressOf())));
+	HR(m_pD11Device->CreateRenderTargetView(pBackBuffer.Get(),nullptr,m_pRenderTargetView.GetAddressOf()));
+	pBackBuffer.Reset();
+
+	// 创建深度/模板缓冲区
+	D3D11_TEXTURE2D_DESC depthStencilDesc;
+	depthStencilDesc.Width = m_nClientWidth;
+	depthStencilDesc.Height = m_nClientHeight;
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.ArraySize = 1;
+	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	if (m_bEnableMsaa)
+	{
+		depthStencilDesc.SampleDesc.Count = 4;
+		depthStencilDesc.SampleDesc.Quality = m_4xMsaaQuality - 1;
+	}
+	else
+	{
+		depthStencilDesc.SampleDesc.Count = 1;
+		depthStencilDesc.SampleDesc.Quality = 0;
+	}
+	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilDesc.CPUAccessFlags = 0;
+	depthStencilDesc.MiscFlags = 0;
+	HR(m_pD11Device->CreateTexture2D(&depthStencilDesc, nullptr, m_pDepthStencilBuffer.GetAddressOf()));
+	
+	// 创建深度/模板视图
+	HR(m_pD11Device->CreateDepthStencilView(m_pDepthStencilBuffer.Get(), nullptr, m_pDepthStencilView.GetAddressOf()));
+
+	// 为渲染管线的输出合并设置渲染目标
+	m_pD11DeviceContext->OMSetRenderTargets(1, m_pRenderTargetView.GetAddressOf(), m_pDepthStencilView.Get());
+
+	// 设置视口，也就是指定将视图输出到窗口的具体位置
+	m_screenViewPort.TopLeftX = 0;
+	m_screenViewPort.TopLeftY = 0;
+	m_screenViewPort.Width = m_nClientWidth;
+	m_screenViewPort.Height = m_nClientHeight;
+	m_screenViewPort.MinDepth = 0.0f;
+	m_screenViewPort.MaxDepth = 1.0f;
+	m_pD11DeviceContext->RSSetViewports(1, &m_screenViewPort);
+
+	return true;
+}
+
+void CChapterOneInitialDlg::DrawScene()
+{
+	ASSERT(m_pD11Device);
+	ASSERT(m_pD11DeviceContext);
+	// 清空的颜色
+	static float red[4] = { 0.2f,0.3f,0.4f,1.0f }; // RGBA,0 ~ 255
+	// 清空渲染目标视图
+	m_pD11DeviceContext->ClearRenderTargetView(m_pRenderTargetView.Get(), red);
+	m_pD11DeviceContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	// 上屏
+	HR(m_pSwapChian->Present(0, 0));
+}
+
+void CChapterOneInitialDlg::InitTimer()
+{
+	SetTimer(TIMER_ID, INTERVAL, nullptr);
+}
+
+
+void CChapterOneInitialDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	switch (nIDEvent)
+	{
+	case TIMER_ID:
+		DrawScene();
+
+		break;
+	default:
+		return;
+	}
+
+	CDialogEx::OnTimer(nIDEvent);
+}
+
+
+void CChapterOneInitialDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+
+	if (m_pD11Device)
+	{
+		CreateRenderTargetViewAndDepthStencilView();
+	}
+}
