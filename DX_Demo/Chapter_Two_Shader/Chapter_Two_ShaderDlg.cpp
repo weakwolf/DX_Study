@@ -23,6 +23,10 @@
 // CChapterTwoShaderDlg 对话框
 
 
+const D3D11_INPUT_ELEMENT_DESC CChapterTwoShaderDlg::VertexPosColor::inputLayout[2] = {
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
 
 CChapterTwoShaderDlg::CChapterTwoShaderDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_CHAPTER_TWO_SHADER_DIALOG, pParent)
@@ -66,7 +70,9 @@ BOOL CChapterTwoShaderDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
-	InitD3DReource();
+	InitD3D();
+	InitEffect();
+	InitReSource();
 	InitTimer();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -108,7 +114,7 @@ HCURSOR CChapterTwoShaderDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-bool CChapterTwoShaderDlg::InitD3DReource()
+bool CChapterTwoShaderDlg::InitD3D()
 {
 	HRESULT hr = S_OK;
 
@@ -253,6 +259,26 @@ bool CChapterTwoShaderDlg::InitD3DReource()
 
 	// 创建渲染目标视图，深度/模板缓冲区
 	CreateRenderTargetViewAndDepthStencilView();
+
+	return true;
+}
+
+bool CChapterTwoShaderDlg::InitEffect()
+{
+	// 创建顶点着色器
+	ComPtr<ID3DBlob> pBlob;
+	HR(CreateShaderFromFile(_T("HLSL\\Triangle_VS.cso"), _T("HLSL\\Triangle_VS.hlsl"), "VS", "vs_5_0", pBlob.ReleaseAndGetAddressOf()));
+	HR(m_pD11Device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, m_pVertexShader.GetAddressOf()));
+	// 创建输入顶点布局并绑定
+	//HR(m_pD11Device->CreateInputLayout())
+
+
+	return true;
+}
+
+bool CChapterTwoShaderDlg::InitReSource()
+{
+
 
 	return true;
 }

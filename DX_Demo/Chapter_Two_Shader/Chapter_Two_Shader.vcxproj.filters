@@ -16,6 +16,9 @@
     <Filter Include="basic">
       <UniqueIdentifier>{f45b0043-3156-4cf5-b973-b6ae2fc6cc64}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HLSL">
+      <UniqueIdentifier>{bc01f067-66d1-4329-8c14-7886debbe853}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Chapter_Two_Shader.h">
@@ -72,10 +75,21 @@
     <None Include="res\ChapterTwoShader.rc2">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="HLSL\Triangle.hlsli">
+      <Filter>HLSL</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Chapter_Two_Shader.ico">
       <Filter>资源文件</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="HLSL\Triangle_VS.hlsl">
+      <Filter>HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\Triangle_PS.hlsl">
+      <Filter>HLSL</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
