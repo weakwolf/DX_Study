@@ -78,18 +78,16 @@
     <None Include="HLSL\Triangle.hlsli">
       <Filter>HLSL</Filter>
     </None>
+    <None Include="HLSL\Triangle_PS.hlsl">
+      <Filter>HLSL</Filter>
+    </None>
+    <None Include="HLSL\Triangle_VS.hlsl">
+      <Filter>HLSL</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Chapter_Two_Shader.ico">
       <Filter>资源文件</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="HLSL\Triangle_VS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\Triangle_PS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>

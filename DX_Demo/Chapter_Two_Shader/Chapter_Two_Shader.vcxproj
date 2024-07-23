@@ -108,6 +108,9 @@
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <FxCompile>
+      <EntryPointName />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -220,8 +223,12 @@
     <Image Include="res\Chapter_Two_Shader.ico" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="HLSL\Triangle_PS.hlsl" />
-    <FxCompile Include="HLSL\Triangle_VS.hlsl" />
+    <None Include="HLSL\Triangle_PS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="HLSL\Triangle_VS.hlsl">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

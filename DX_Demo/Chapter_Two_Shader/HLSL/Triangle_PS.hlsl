@@ -2,7 +2,7 @@
 
 #include "Triangle.hlsli"
 
-float4 PS(VertextOut pIn) : SV_Target
+float4 PS(VertexOut pIn) : SV_Target
 {
 	return pIn.color;
 }

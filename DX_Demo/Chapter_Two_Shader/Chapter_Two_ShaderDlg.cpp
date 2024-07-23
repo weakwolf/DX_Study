@@ -269,16 +269,56 @@ bool CChapterTwoShaderDlg::InitEffect()
 	ComPtr<ID3DBlob> pBlob;
 	HR(CreateShaderFromFile(_T("HLSL\\Triangle_VS.cso"), _T("HLSL\\Triangle_VS.hlsl"), "VS", "vs_5_0", pBlob.ReleaseAndGetAddressOf()));
 	HR(m_pD11Device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, m_pVertexShader.GetAddressOf()));
-	// 创建输入顶点布局并绑定
-	//HR(m_pD11Device->CreateInputLayout())
+	// 创建输入顶点布局并绑定到顶点着色器
+	HR(m_pD11Device->CreateInputLayout(VertexPosColor::inputLayout, ARRAYSIZE(VertexPosColor::inputLayout), pBlob->GetBufferPointer(), pBlob->GetBufferSize(), m_pVertexLayout.GetAddressOf()));
 
+	// 创建像素着色器
+	HR(CreateShaderFromFile(_T("HLSL\\Triangle_PS.cso"), _T("HLSL\\Triangle_PS.hlsl"), "PS", "ps_5_0", pBlob.ReleaseAndGetAddressOf()));
+	HR(m_pD11Device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, m_pPixelShader.GetAddressOf()));
 
 	return true;
 }
 
 bool CChapterTwoShaderDlg::InitReSource()
 {
+	// 创建顶点缓冲区，这里绘制一个三角形
+	VertexPosColor vertices[] = 
+	{
+		{DirectX::XMFLOAT3(0.0f,0.5f,0.5f),DirectX::XMFLOAT4(0.0f,1.0f,0.0f,1.0f)},
+		{DirectX::XMFLOAT3(0.5f,-0.5f,0.5f),DirectX::XMFLOAT4(0.0f,0.0f,1.0f,1.0f)},
+		{DirectX::XMFLOAT3(-0.5f,-0.5f,0.5f),DirectX::XMFLOAT4(1.0f,0.0f,0.0f,1.0f)}
+	};
+	// 设置顶点缓冲区描述
+	D3D11_BUFFER_DESC vbd;
+	ZeroMemory(&vbd, sizeof(vbd));
+	vbd.Usage = D3D11_USAGE_IMMUTABLE;
+	vbd.ByteWidth = sizeof(vertices);
+	vbd.CPUAccessFlags = 0;
+	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	// 新建顶点缓冲区
+	D3D11_SUBRESOURCE_DATA initData;
+	ZeroMemory(&initData, sizeof(initData));
+	initData.pSysMem = vertices;
+	HR(m_pD11Device->CreateBuffer(&vbd, &initData, m_pVerxtexBuffer.GetAddressOf()));
 
+	// 给渲染管线各个阶段绑定号所需资源
+
+	// 绑定顶点缓冲区
+	UINT nStride = sizeof(VertexPosColor);	//每一个顶点之间的跨越字节数
+	UINT nOffset = 0;						// 起始偏移量
+	// 这里的最后两个参数是在告诉渲染管线一次读取的顶点数据的大小
+	// 而我们在前面设置的定点布局描述的是一个顶点数据的含义
+	m_pD11DeviceContext->IASetVertexBuffers(0, 1, m_pVerxtexBuffer.GetAddressOf(), &nStride, &nOffset);
+	
+	// 设置图元类型--三角形
+	m_pD11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	
+	// 设置顶点布局
+	m_pD11DeviceContext->IASetInputLayout(m_pVertexLayout.Get());
+
+	// 设置顶点着色器，像素着色器
+	m_pD11DeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	m_pD11DeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
 	return true;
 }
@@ -353,11 +393,13 @@ void CChapterTwoShaderDlg::DrawScene()
 	ASSERT(m_pD11Device);
 	ASSERT(m_pD11DeviceContext);
 	// 清空的颜色
-	static float red[4] = { 0.2f,0.3f,0.4f,1.0f }; // RGBA,0 ~ 255
+	static float red[4] = { 0.0f,0.0f,0.0f,1.0f }; // RGBA,0 ~ 255
 	// 清空渲染目标视图
 	m_pD11DeviceContext->ClearRenderTargetView(m_pRenderTargetView.Get(), red);
 	m_pD11DeviceContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+	// 绘制三角形
+	m_pD11DeviceContext->Draw(3, 0);
 	// 上屏
 	HR(m_pSwapChian->Present(0, 0));
 }
