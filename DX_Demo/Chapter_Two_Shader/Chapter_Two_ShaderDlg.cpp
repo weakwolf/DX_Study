@@ -282,11 +282,24 @@ bool CChapterTwoShaderDlg::InitEffect()
 bool CChapterTwoShaderDlg::InitReSource()
 {
 	// 创建顶点缓冲区，这里绘制一个三角形
-	VertexPosColor vertices[] = 
+	//VertexPosColor vertices[] =
+	//{
+	//	{DirectX::DirectX::XMFLOAT3(0.0f,0.5f,0.5f),DirectX::DirectX::XMFLOAT4(0.0f,1.0f,0.0f,1.0f)},
+	//	{DirectX::DirectX::XMFLOAT3(0.5f,-0.5f,0.5f),DirectX::DirectX::XMFLOAT4(0.0f,0.0f,1.0f,1.0f)},
+	//	{DirectX::DirectX::XMFLOAT3(-0.5f,-0.5f,0.5f),DirectX::DirectX::XMFLOAT4(1.0f,0.0f,0.0f,1.0f)}
+	//};
+
+	// 创建顶点缓冲区，这里绘制一个立方体
+	VertexPosColor vertices[] =
 	{
-		{DirectX::XMFLOAT3(0.0f,0.5f,0.5f),DirectX::XMFLOAT4(0.0f,1.0f,0.0f,1.0f)},
-		{DirectX::XMFLOAT3(0.5f,-0.5f,0.5f),DirectX::XMFLOAT4(0.0f,0.0f,1.0f,1.0f)},
-		{DirectX::XMFLOAT3(-0.5f,-0.5f,0.5f),DirectX::XMFLOAT4(1.0f,0.0f,0.0f,1.0f)}
+		{ DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
+		{ DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+		{ DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+		{ DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+		{ DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
+		{ DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+		{ DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }
 	};
 	// 设置顶点缓冲区描述
 	D3D11_BUFFER_DESC vbd;
@@ -301,7 +314,58 @@ bool CChapterTwoShaderDlg::InitReSource()
 	initData.pSysMem = vertices;
 	HR(m_pD11Device->CreateBuffer(&vbd, &initData, m_pVerxtexBuffer.GetAddressOf()));
 
-	// 给渲染管线各个阶段绑定号所需资源
+	// 创建索引缓冲区并绑定到渲染管线
+	// 索引数组
+	DWORD indices[] = {
+		// 正面
+		0, 1, 2,
+		2, 3, 0,
+		// 左面
+		4, 5, 1,
+		1, 0, 4,
+		// 顶面
+		1, 5, 6,
+		6, 2, 1,
+		// 背面
+		7, 6, 5,
+		5, 4, 7,
+		// 右面
+		3, 2, 6,
+		6, 7, 3,
+		// 底面
+		4, 0, 3,
+		3, 7, 4
+	};
+	D3D11_BUFFER_DESC ibd;
+	ZeroMemory(&ibd, sizeof(ibd));
+	ibd.Usage = D3D11_USAGE_IMMUTABLE;
+	ibd.ByteWidth = sizeof(indices);
+	ibd.CPUAccessFlags = 0;
+	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	ZeroMemory(&initData, sizeof(initData));
+	initData.pSysMem = indices;
+	HR(m_pD11Device->CreateBuffer(&vbd, &initData, m_pIndexBuffer.GetAddressOf()));
+	// 注意索引类型统一使用32位无符号整数
+	m_pD11DeviceContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+	// 创建常量缓冲区
+	D3D11_BUFFER_DESC cbd;
+	ZeroMemory(&cbd, sizeof(cbd));
+	cbd.Usage = D3D11_USAGE_DYNAMIC;
+	cbd.ByteWidth = sizeof(ConstantBuffer);
+	cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	HR(m_pD11Device->CreateBuffer(&cbd, nullptr, m_pConstBuffer.GetAddressOf()));
+	// 初始化常量缓冲区的值，其中涉及到的三个矩阵目前先不用关心，后面第四章会介绍
+	m_constBuffer.world = DirectX::XMMatrixIdentity();
+	m_constBuffer.view = DirectX::XMMatrixTranspose(DirectX::XMMatrixLookAtLH(
+		DirectX::XMVectorSet(0.0f,0.0f,-5.0f,0.0f),
+		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
+		DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)
+	));
+	m_constBuffer.proj = DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, AspectRatio(), 1.0f, 1000.0f));
+
+	// 给渲染管线各个阶段绑定好所需资源
 
 	// 绑定顶点缓冲区
 	UINT nStride = sizeof(VertexPosColor);	//每一个顶点之间的跨越字节数
@@ -318,6 +382,8 @@ bool CChapterTwoShaderDlg::InitReSource()
 
 	// 设置顶点着色器，像素着色器
 	m_pD11DeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	// 将常量缓冲区绑定到顶点着色器，第一个参数代表寄存器中的第几号缓冲区
+	m_pD11DeviceContext->VSSetConstantBuffers(0, 1, m_pConstBuffer.GetAddressOf());
 	m_pD11DeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
 	return true;
@@ -393,15 +459,42 @@ void CChapterTwoShaderDlg::DrawScene()
 	ASSERT(m_pD11Device);
 	ASSERT(m_pD11DeviceContext);
 	// 清空的颜色
-	static float red[4] = { 0.0f,0.0f,0.0f,1.0f }; // RGBA,0 ~ 255
+	static float black [4] = { 0.0f,0.0f,0.0f,1.0f }; // RGBA,0 ~ 255
 	// 清空渲染目标视图
-	m_pD11DeviceContext->ClearRenderTargetView(m_pRenderTargetView.Get(), red);
+	m_pD11DeviceContext->ClearRenderTargetView(m_pRenderTargetView.Get(), black);
 	m_pD11DeviceContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	// 绘制三角形
-	m_pD11DeviceContext->Draw(3, 0);
+	//m_pD11DeviceContext->Draw(3, 0);
+	// 绘制立方体
+	m_pD11DeviceContext->DrawIndexed(36, 0, 0);
 	// 上屏
 	HR(m_pSwapChian->Present(0, 0));
+}
+
+void CChapterTwoShaderDlg::UpdateScene()
+{
+	//std::random_device rd;  // 用于获取随机种子
+	//std::mt19937 gen(rd()); // 使用 Mersenne Twister 引擎
+	// 创建分布对象
+	//std::uniform_real_distribution<> dis(0.0, 1.0); // 生成 0 到 1 之间的随机数
+	// 生成随机数
+	//double randomNum = dis(gen);
+	static float fPhi = 0.0f, fTheta = 0.0f,fRandom = 0.0f,fDelta = 0.01f;
+	if (fRandom > 1.0f)
+		fDelta = -0.01f;
+	else if (fRandom < 0.0f)
+		fDelta = 0.01f;
+	fRandom += fDelta;
+	fPhi += 0.3f * fRandom;
+	fTheta += 0.37f * fRandom;
+	m_constBuffer.world = DirectX::XMMatrixTranspose(DirectX::XMMatrixRotationX(fPhi) * DirectX::XMMatrixRotationY(fTheta));
+
+	// 更新常量缓冲区
+	D3D11_MAPPED_SUBRESOURCE mappedData;
+	HR(m_pD11DeviceContext->Map(m_pConstBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData));
+	memcpy_s(mappedData.pData, sizeof(m_constBuffer), &m_constBuffer, sizeof(m_constBuffer));
+	m_pD11DeviceContext->Unmap(m_pConstBuffer.Get(), 0);
 }
 
 void CChapterTwoShaderDlg::InitTimer()
@@ -411,12 +504,18 @@ void CChapterTwoShaderDlg::InitTimer()
 
 
 
+float CChapterTwoShaderDlg::AspectRatio() const
+{
+	return static_cast<float>(m_nClientWidth / m_nClientHeight);
+}
+
 void CChapterTwoShaderDlg::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	switch (nIDEvent)
 	{
 	case TIMER_ID:
+		UpdateScene();
 		DrawScene();
 
 		break;

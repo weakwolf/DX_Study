@@ -17,6 +17,13 @@ class CChapterTwoShaderDlg : public CDialogEx
 		DirectX::XMFLOAT4 color;
 		static const D3D11_INPUT_ELEMENT_DESC inputLayout[2];
 	};
+	// 常量缓冲区对应的结构体
+	struct ConstantBuffer
+	{
+		DirectX::XMMATRIX world;
+		DirectX::XMMATRIX view;
+		DirectX::XMMATRIX proj;
+	};
 
 // 构造
 public:
@@ -43,14 +50,16 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 private:
-	bool InitD3D();			// D3D初始化
-	bool InitEffect();		// 创建顶点着色器，像素着色器
-	bool InitReSource();	// 创建顶点缓冲区，并绑定所有资源到渲染管线
-	void DrawScene();		// 绘制每一帧
-	bool CreateRenderTargetViewAndDepthStencilView();
+	bool	InitD3D();			// D3D初始化
+	bool	InitEffect();		// 创建顶点着色器，像素着色器
+	bool	InitReSource();		// 创建顶点缓冲区，并绑定所有资源到渲染管线
+	void	DrawScene();		// 绘制每一帧
+	void	UpdateScene();		// 更新世界矩阵
+	bool	CreateRenderTargetViewAndDepthStencilView();
 
 private:
-	void InitTimer();
+	void	InitTimer();
+	float	AspectRatio() const;   // 获取屏幕宽高比
 
 	// D3D相关成员
 private:
@@ -80,8 +89,13 @@ private:
 private:
 	ComPtr<ID3D11InputLayout>	m_pVertexLayout;	// 顶点输入布局
 	ComPtr<ID3D11Buffer>		m_pVerxtexBuffer;	// 顶点缓冲区
+	ComPtr<ID3D11Buffer>		m_pIndexBuffer;		// 索引缓冲区
+	ComPtr<ID3D11Buffer>		m_pConstBuffer;		// 常量缓冲区
 	ComPtr<ID3D11VertexShader>	m_pVertexShader;	// 顶点着色器
 	ComPtr<ID3D11PixelShader>	m_pPixelShader;		// 像素着色器
+
+private:
+	ConstantBuffer	m_constBuffer;	// 用于修改常量缓冲区的变量
 
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
